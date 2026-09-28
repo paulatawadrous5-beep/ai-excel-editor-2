@@ -63,10 +63,13 @@ sweepInterval.unref();
 if (require.main === module) {
   app.listen(config.port, () => {
     logger.info(`AI Excel Editor listening on http://localhost:${config.port}`);
+    logger.info(`.env ${config.envFileLoaded ? "loaded from" : "NOT found at"} ${config.envPath}`);
+    logger.info(`AI model: ${config.ai.model} | API key ${config.ai.apiKey ? "loaded" : "MISSING"}`);
     if (!config.ai.apiKey) {
-      logger.warn("ANTHROPIC_API_KEY is not set - AI-powered requests will fail until you configure .env");
+      logger.warn("ANTHROPIC_API_KEY is not set - AI-powered requests will fail until you configure .env and restart");
     }
   });
 }
 
 module.exports = app;
+
