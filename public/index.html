@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Excel Editor — describe it, don't build it</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%231F6F54%22/><text x=%2250%22 y=%2266%22 font-size=%2258%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Georgia,serif%22>fx</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <div class="brand">
+      <span class="brand__mark" aria-hidden="true">fx</span>
+      <span class="brand__name">AI Excel Editor</span>
+    </div>
+    <a class="topbar__link" href="#workspace">Open workspace</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero__inner">
+      <p class="hero__eyebrow">for people who have never touched a formula</p>
+      <h1 class="hero__title">Tell your spreadsheet what to do.<br>In plain English.</h1>
+      <p class="hero__sub">
+        Upload a workbook or start blank, describe the change — “make the header bold and blue,
+        delete the empty row, add a Total column, chart it” — and get back a real, working .xlsx.
+        No formulas. No macros. Nothing to learn.
+      </p>
+      <a href="#workspace" class="hero__cta">Start editing →</a>
+    </div>
+    <div class="hero__grid" aria-hidden="true">
+      <div class="hero__cell hero__cell--label">A</div>
+      <div class="hero__cell hero__cell--label">B</div>
+      <div class="hero__cell hero__cell--label">C</div>
+      <div class="hero__cell hero__cell--head">Month</div>
+      <div class="hero__cell hero__cell--head">Revenue</div>
+      <div class="hero__cell hero__cell--head">Total</div>
+      <div class="hero__cell">Jan</div>
+      <div class="hero__cell">4,120</div>
+      <div class="hero__cell hero__cell--formula">=SUM(B2)</div>
+      <div class="hero__cell">Feb</div>
+      <div class="hero__cell">5,860</div>
+      <div class="hero__cell hero__cell--formula">=SUM(B2:B3)</div>
+    </div>
+  </section>
+
+  <section class="workspace" id="workspace">
+    <div class="panel">
+
+      <div class="tabstrip" role="tablist" aria-label="Choose a mode">
+        <button class="tab is-active" id="tab-edit" role="tab" aria-selected="true" aria-controls="pane-edit">
+          Edit a file
+        </button>
+        <button class="tab" id="tab-create" role="tab" aria-selected="false" aria-controls="pane-create">
+          Create from scratch
+        </button>
+      </div>
+
+      <!-- ===================== EDIT MODE ===================== -->
+      <div class="pane is-active" id="pane-edit" role="tabpanel" aria-labelledby="tab-edit">
+        <ol class="steps">
+          <li class="steps__item is-active" data-step="upload">Upload</li>
+          <li class="steps__item" data-step="describe">Describe changes</li>
+          <li class="steps__item" data-step="review">Review</li>
+          <li class="steps__item" data-step="done">Download</li>
+        </ol>
+
+        <div class="stepbody" data-stepbody="upload">
+          <div class="dropzone" id="edit-dropzone" tabindex="0" role="button" aria-label="Upload an .xlsx file">
+            <input type="file" id="edit-file-input" accept=".xlsx" hidden />
+            <p class="dropzone__title">Drop your .xlsx here</p>
+            <p class="dropzone__sub">or click to browse — max 15 MB</p>
+          </div>
+          <div class="filecard" id="edit-filecard" hidden>
+            <div class="filecard__info">
+              <span class="filecard__name" id="edit-filename"></span>
+              <span class="filecard__size" id="edit-filesize"></span>
+            </div>
+            <button class="filecard__remove" id="edit-file-remove" type="button" aria-label="Remove file">Remove</button>
+          </div>
+          <p class="field-error" id="edit-upload-error" hidden></p>
+        </div>
+
+        <div class="stepbody" data-stepbody="describe" hidden>
+          <label class="field-label" for="edit-instructions">What should change?</label>
+          <textarea id="edit-instructions" class="textarea" rows="5"
+            placeholder="Tell me what you want to change in your Excel file…"></textarea>
+          <div class="examples">
+            <button class="example-chip" type="button">Delete the empty row at the bottom</button>
+            <button class="example-chip" type="button">Make the header row bold with a dark blue background</button>
+            <button class="example-chip" type="button">Add a Total column and a chart of monthly sales</button>
+            <button class="example-chip" type="button">Make all rows 0.75 inches high and freeze the header</button>
+          </div>
+          <div class="stepbody__actions">
+            <button class="btn btn--ghost" id="edit-back-to-upload" type="button">Back</button>
+            <button class="btn btn--primary" id="edit-analyze" type="button">Analyze &amp; preview changes</button>
+          </div>
+          <p class="field-error" id="edit-describe-error" hidden></p>
+        </div>
+
+        <div class="stepbody" data-stepbody="processing" hidden>
+          <div class="processing">
+            <div class="spinner" aria-hidden="true"></div>
+            <p class="processing__status" id="edit-processing-status">Analyzing workbook…</p>
+          </div>
+        </div>
+
+        <div class="stepbody" data-stepbody="review" hidden>
+          <p class="field-label">Changes detected</p>
+          <ul class="change-list" id="edit-change-list"></ul>
+          <p class="warnings" id="edit-warnings" hidden></p>
+          <div class="stepbody__actions">
+            <button class="btn btn--ghost" id="edit-back-to-describe" type="button">Back</button>
+            <button class="btn btn--primary" id="edit-confirm" type="button">Apply these changes</button>
+          </div>
+        </div>
+
+        <div class="stepbody" data-stepbody="done" hidden>
+          <div class="result" id="edit-result"></div>
+          <button class="btn btn--secondary" id="edit-start-over" type="button">Edit another file</button>
+        </div>
+      </div>
+
+      <!-- ===================== CREATE MODE ===================== -->
+      <div class="pane" id="pane-create" role="tabpanel" aria-labelledby="tab-create" hidden>
+        <ol class="steps">
+          <li class="steps__item is-active" data-step="describe">Describe workbook</li>
+          <li class="steps__item" data-step="review">Review</li>
+          <li class="steps__item" data-step="done">Download</li>
+        </ol>
+
+        <div class="stepbody" data-stepbody="describe">
+          <label class="field-label" for="create-instructions">What do you want to build?</label>
+          <textarea id="create-instructions" class="textarea" rows="5"
+            placeholder="Describe what you want to create…"></textarea>
+          <div class="examples">
+            <button class="example-chip" type="button">Monthly expense tracker with categories, totals and a chart</button>
+            <button class="example-chip" type="button">Simple invoice template with a totals section</button>
+            <button class="example-chip" type="button">Weekly project task list with status and due dates</button>
+          </div>
+          <div class="stepbody__actions">
+            <button class="btn btn--primary" id="create-analyze" type="button">Generate preview</button>
+          </div>
+          <p class="field-error" id="create-describe-error" hidden></p>
+        </div>
+
+        <div class="stepbody" data-stepbody="processing" hidden>
+          <div class="processing">
+            <div class="spinner" aria-hidden="true"></div>
+            <p class="processing__status" id="create-processing-status">Planning your workbook…</p>
+          </div>
+        </div>
+
+        <div class="stepbody" data-stepbody="review" hidden>
+          <p class="field-label">Workbook plan</p>
+          <ul class="change-list" id="create-change-list"></ul>
+          <p class="warnings" id="create-warnings" hidden></p>
+          <div class="stepbody__actions">
+            <button class="btn btn--ghost" id="create-back-to-describe" type="button">Back</button>
+            <button class="btn btn--primary" id="create-confirm" type="button">Generate workbook</button>
+          </div>
+        </div>
+
+        <div class="stepbody" data-stepbody="done" hidden>
+          <div class="result" id="create-result"></div>
+          <button class="btn btn--secondary" id="create-start-over" type="button">Create another workbook</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sitefoot">
+  <p>Files are processed on the server and deleted automatically after a short time. Nothing is executed as code — every change is a validated, structured operation.</p>
+</footer>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
